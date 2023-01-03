@@ -1,21 +1,22 @@
-import User from "../models/User.js";
+import User from "../models/user.js";
 import bcrypt from "bcrypt";
-import * as jwt from "jsonwebtoken";
+import jwt from "jsonwebtoken";
 
 // signup
 export const signup = async (req, res) => {
   try {
     const salt = bcrypt.genSaltSync(10);
-    const passwordHash = bcrypt.hash(req.body.password, salt);
+    const passwordHash = bcrypt.hashSync(req.body.password, salt);
 
     const newUser = new User({ ...req.body, password: passwordHash });
     await newUser.save();
 
-    // const token = jwt.sign({ id: newUser._id }, process.env.JWT_KEY);
+    const token = jwt.sign({ id: newUser._id }, process.env.JWT_KEY);
 
     // to hide passowrd : by destructing
-    const { password, ...otherDetail } = newUser;
-    res.status(200).json(...otherDetail); // response except pswd;
+    const { password, ...otherDetail } = newUser._doc;
+
+    res.status(200).json({ ...otherDetail });
   } catch (error) {
     res.status(400).json({ error: error.message });
   }
@@ -34,9 +35,14 @@ export const login = async (req, res) => {
       res.status(400).json({ msg: "Password Invalid !!" });
     }
 
-    const token = jwt.sign({id: user._id}, process.env.JWT_KEY);
+    delete user.password;
+    const token = jwt.sign({ id: user._id }, process.env.JWT_KEY);
 
-    res.status(200).json(user.email);// sending email blocking pswd 
+    res
+      .cookie("access_token", token, { httpOnly: true })
+      .status(200)
+      .json(user);
+
 
   } catch (error) {
     res.status(400).json({ error: error.message });

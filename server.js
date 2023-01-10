@@ -8,9 +8,10 @@ import cookieParser from "cookie-parser";
 
 
 const app = express();
-// project-built routers, controllers, models and other
+// project-built routes to controllers
 import authRoutes from "./routers/authRouter.js";
 import userRouter from "./routers/userRouter.js";
+import tweetRoutes from "./routers/tweetRouter.js";
 
 
 // npm-packages uses
@@ -22,23 +23,19 @@ app.use(bodyParser.urlencoded({limit:"10mb", extended:true}));
 app.use(morgan("dev"));
 app.use(cookieParser());
 
-// project-built api uses
+// project-built api uses of routes from routers
 app.use("/auth", authRoutes);
 app.use("/user",userRouter);
-
-
-
-
-
+app.use("/tweets",tweetRoutes);
 
 // connection to database
 mongoose.set('strictQuery', false);
-mongoose.connect(process.env.MONGDB_URL, {
+mongoose.connect(process.env.MONGDB_URL_local, {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   })
   .then( 
-    console.log("\n---------------------------------------\nMongodb is attached locally. Successfully !!"));
+    console.log("\n---------------------------------------\nMongodb is attached. Successfully !!"));
 
 // port
 const PORT = process.env.PORT || 6001;
